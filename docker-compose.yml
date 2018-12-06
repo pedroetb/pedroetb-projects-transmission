@@ -1,18 +1,18 @@
 version: '3.7'
 services:
   transmission:
-    image: linuxserver/transmission:${IMAGE_TAG:-latest}
+    image: ${IMAGE_NAME:-linuxserver/transmission}:${IMAGE_TAG:-latest}
     environment:
       - TZ
     networks:
       - traefik-net
     ports:
       - target: ${DATA_PORT}
-        published: ${PUBLIC_PORT}
+        published: ${DATA_PORT}
         protocol: tcp
         mode: host
       - target: ${DATA_PORT}
-        published: ${PUBLIC_PORT}
+        published: ${DATA_PORT}
         protocol: udp
         mode: host
     volumes:
