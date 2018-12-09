@@ -20,7 +20,7 @@ services:
       - data-vol:/downloads
       - watch-vol:/watch
     healthcheck:
-      test: wget --spider -nv -t 3 http://localhost:${UI_PORT}
+      test: wget --spider http://localhost:${UI_PORT}
       interval: ${TRANSMISSION_HEALTHCHECK_INTERVAL}
       timeout: ${TRANSMISSION_HEALTHCHECK_TIMEOUT}
       retries: ${TRANSMISSION_HEALTHCHECK_RETRIES}
