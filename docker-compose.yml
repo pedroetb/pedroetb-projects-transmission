@@ -1,4 +1,5 @@
 version: '3.7'
+
 services:
   transmission:
     image: ${IMAGE_NAME:-linuxserver/transmission}:${IMAGE_TAG:-latest}
@@ -7,20 +8,20 @@ services:
     networks:
       - traefik-net
     ports:
-      - target: ${DATA_PORT}
-        published: ${DATA_PORT}
+      - target: ${TRANSMISSION_DATA_PORT}
+        published: ${TRANSMISSION_DATA_PORT}
         protocol: tcp
-        mode: ${PORT_MODE}
-      - target: ${DATA_PORT}
-        published: ${DATA_PORT}
+        mode: ${TRANSMISSION_PORT_MODE}
+      - target: ${TRANSMISSION_DATA_PORT}
+        published: ${TRANSMISSION_DATA_PORT}
         protocol: udp
-        mode: ${PORT_MODE}
+        mode: ${TRANSMISSION_PORT_MODE}
     volumes:
       - config-vol:/config
       - data-vol:/downloads
       - watch-vol:/watch
     healthcheck:
-      test: wget --spider http://localhost:${UI_PORT}
+      test: wget --spider http://localhost:${TRANSMISSION_UI_PORT}
       interval: ${TRANSMISSION_HEALTHCHECK_INTERVAL}
       timeout: ${TRANSMISSION_HEALTHCHECK_TIMEOUT}
       retries: ${TRANSMISSION_HEALTHCHECK_RETRIES}
@@ -29,10 +30,10 @@ services:
       mode: replicated
       replicas: ${TRANSMISSION_REPLICAS}
       labels:
-        traefik.frontend.auth.basic.users: ${UI_AUTH}
-        traefik.frontend.rule: Host:${SUBDOMAIN}.${PUBLIC_HOSTNAME}
+        traefik.frontend.auth.basic.users: ${TRANSMISSION_UI_AUTH}
+        traefik.frontend.rule: Host:${TRANSMISSION_SUBDOMAIN}.${PUBLIC_HOSTNAME}
         traefik.backend: transmission
-        traefik.port: "${UI_PORT}"
+        traefik.port: "${TRANSMISSION_UI_PORT}"
       restart_policy:
         delay: ${TRANSMISSION_RESTART_POLICY_DELAY}
         window: ${TRANSMISSION_RESTART_POLICY_WINDOW}
@@ -53,9 +54,9 @@ volumes:
     name: ${TRANSMISSION_DATA_VOL_NAME:-transmission-data-vol}
     driver: local
     driver_opts:
-      type: ${DATA_VOLUME_TYPE}
-      o: ${DATA_VOLUME_OPTIONS}
-      device: ${DATA_VOLUME_DEVICE}
+      type: ${TRANSMISSION_DATA_VOLUME_TYPE}
+      o: ${TRANSMISSION_DATA_VOLUME_OPTIONS}
+      device: ${TRANSMISSION_DATA_VOLUME_DEVICE}
 
   config-vol:
     name: ${TRANSMISSION_CONFIG_VOL_NAME:-transmission-config-vol}
