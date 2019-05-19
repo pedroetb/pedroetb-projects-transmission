@@ -4,7 +4,7 @@ services:
   transmission:
     image: ${IMAGE_NAME:-linuxserver/transmission}:${IMAGE_TAG:-latest}
     environment:
-      - TZ
+      TZ:
     networks:
       - traefik-net
     ports:
@@ -21,28 +21,29 @@ services:
       - data-vol:/downloads
       - watch-vol:/watch
     healthcheck:
-      test: wget --spider http://localhost:${TRANSMISSION_UI_PORT}
-      interval: ${TRANSMISSION_HEALTHCHECK_INTERVAL}
-      timeout: ${TRANSMISSION_HEALTHCHECK_TIMEOUT}
-      retries: ${TRANSMISSION_HEALTHCHECK_RETRIES}
-      start_period: ${TRANSMISSION_HEALTHCHECK_START_PERIOD}
+      test: wget --spider -q http://localhost:${TRANSMISSION_UI_PORT}
+      interval: ${TRANSMISSION_HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${TRANSMISSION_HEALTHCHECK_TIMEOUT:-1m}
+      retries: ${TRANSMISSION_HEALTHCHECK_RETRIES:-3}
+      start_period: ${TRANSMISSION_HEALTHCHECK_START_PERIOD:-1m}
     deploy:
       mode: replicated
-      replicas: ${TRANSMISSION_REPLICAS}
+      replicas: ${TRANSMISSION_REPLICAS:-1}
       labels:
         traefik.frontend.auth.basic.users: ${TRANSMISSION_UI_AUTH}
-        traefik.frontend.rule: Host:${TRANSMISSION_SUBDOMAIN}.${PUBLIC_HOSTNAME}
+        traefik.frontend.rule: Host:${TRANSMISSION_SUBDOMAIN:-transmission}.${PUBLIC_HOSTNAME}
         traefik.backend: transmission
-        traefik.port: "${TRANSMISSION_UI_PORT}"
+        traefik.port: '${TRANSMISSION_UI_PORT}'
       restart_policy:
-        delay: ${TRANSMISSION_RESTART_POLICY_DELAY}
-        window: ${TRANSMISSION_RESTART_POLICY_WINDOW}
+        delay: ${TRANSMISSION_RESTART_POLICY_DELAY:-10s}
+        window: ${TRANSMISSION_RESTART_POLICY_WINDOW:-1m}
       resources:
         limits:
-          cpus: "${TRANSMISSION_LIMITS_CPUS}"
-          memory: ${TRANSMISSION_LIMITS_MEMORY}
+          cpus: '${TRANSMISSION_LIMITS_CPUS:-1}'
+          memory: ${TRANSMISSION_LIMITS_MEMORY:-256M}
         reservations:
-          memory: ${TRANSMISSION_RESERVATIONS_MEMORY}
+          cpus: '${TRANSMISSION_RESERVATIONS_CPUS:-0.001}'
+          memory: ${TRANSMISSION_RESERVATIONS_MEMORY:-32M}
 
 networks:
   traefik-net:
@@ -60,6 +61,11 @@ volumes:
 
   config-vol:
     name: ${TRANSMISSION_CONFIG_VOL_NAME:-transmission-config-vol}
+    driver: local
+    driver_opts:
+      type: ${TRANSMISSION_CONFIG_VOLUME_TYPE}
+      o: ${TRANSMISSION_CONFIG_VOLUME_OPTIONS}
+      device: ${TRANSMISSION_CONFIG_VOLUME_DEVICE}
 
   watch-vol:
     name: ${TRANSMISSION_WATCH_VOL_NAME:-transmission-watch-vol}
