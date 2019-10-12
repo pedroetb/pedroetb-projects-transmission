@@ -6,44 +6,47 @@ services:
     environment:
       TZ:
     networks:
-      - traefik-net
+      traefik-net:
     ports:
-      - target: ${TRANSMISSION_DATA_PORT}
-        published: ${TRANSMISSION_DATA_PORT}
+      - target: ${DATA_PORT}
+        published: ${DATA_PORT}
         protocol: tcp
-        mode: ${TRANSMISSION_PORT_MODE}
-      - target: ${TRANSMISSION_DATA_PORT}
-        published: ${TRANSMISSION_DATA_PORT}
+        mode: ${PORT_MODE}
+      - target: ${DATA_PORT}
+        published: ${DATA_PORT}
         protocol: udp
-        mode: ${TRANSMISSION_PORT_MODE}
+        mode: ${PORT_MODE}
     volumes:
       - config-vol:/config
       - data-vol:/downloads
       - watch-vol:/watch
     healthcheck:
-      test: wget --spider -q http://localhost:${TRANSMISSION_UI_PORT}
-      interval: ${TRANSMISSION_HEALTHCHECK_INTERVAL:-30s}
-      timeout: ${TRANSMISSION_HEALTHCHECK_TIMEOUT:-1m}
-      retries: ${TRANSMISSION_HEALTHCHECK_RETRIES:-3}
-      start_period: ${TRANSMISSION_HEALTHCHECK_START_PERIOD:-1m}
+      test: wget --spider -q http://localhost:${UI_PORT}
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-15s}
+      retries: ${HEALTHCHECK_RETRIES:-10}
+      start_period: ${HEALTHCHECK_START_PERIOD:-1m}
     deploy:
       mode: replicated
-      replicas: ${TRANSMISSION_REPLICAS:-1}
-      labels:
-        traefik.frontend.auth.basic.users: ${TRANSMISSION_UI_AUTH}
-        traefik.frontend.rule: Host:${TRANSMISSION_SUBDOMAIN:-transmission}.${PUBLIC_HOSTNAME}
-        traefik.backend: transmission
-        traefik.port: '${TRANSMISSION_UI_PORT}'
+      replicas: ${REPLICAS:-1}
       restart_policy:
-        delay: ${TRANSMISSION_RESTART_POLICY_DELAY:-10s}
-        window: ${TRANSMISSION_RESTART_POLICY_WINDOW:-1m}
+        delay: ${RESTART_DELAY:-10s}
+      update_config:
+        delay: ${UPDATE_DELAY:-1m}
+      labels:
+        traefik.http.routers.transmission.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
+        traefik.http.routers.transmission.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
+        traefik.http.routers.transmission.rule: Host(`${TRAEFIK_SUBDOMAIN:-transmission}.${TRAEFIK_DOMAIN}`)
+        traefik.http.middlewares.transmission-auth.basicauth.users: ${TRAEFIK_AUTH}
+        traefik.http.routers.transmission.middlewares: transmission-auth
+        traefik.http.services.transmission.loadbalancer.server.port: ${UI_PORT}
       resources:
         limits:
-          cpus: '${TRANSMISSION_LIMITS_CPUS:-1}'
-          memory: ${TRANSMISSION_LIMITS_MEMORY:-256M}
+          cpus: '${RESOURCES_LIMITS_CPUS:-1}'
+          memory: ${RESOURCES_LIMITS_MEMORY:-256M}
         reservations:
-          cpus: '${TRANSMISSION_RESERVATIONS_CPUS:-0.001}'
-          memory: ${TRANSMISSION_RESERVATIONS_MEMORY:-32M}
+          cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-32M}
 
 networks:
   traefik-net:
@@ -52,20 +55,20 @@ networks:
 
 volumes:
   data-vol:
-    name: ${TRANSMISSION_DATA_VOL_NAME:-transmission-data-vol}
+    name: ${DATA_VOL_NAME:-transmission-data-vol}
     driver: local
     driver_opts:
-      type: ${TRANSMISSION_DATA_VOLUME_TYPE}
-      o: ${TRANSMISSION_DATA_VOLUME_OPTIONS}
-      device: ${TRANSMISSION_DATA_VOLUME_DEVICE}
+      type: ${DATA_VOL_TYPE}
+      o: ${DATA_VOL_OPTIONS}
+      device: ${DATA_VOL_DEVICE}
 
   config-vol:
-    name: ${TRANSMISSION_CONFIG_VOL_NAME:-transmission-config-vol}
+    name: ${CONFIG_VOL_NAME:-transmission-config-vol}
     driver: local
     driver_opts:
-      type: ${TRANSMISSION_CONFIG_VOLUME_TYPE}
-      o: ${TRANSMISSION_CONFIG_VOLUME_OPTIONS}
-      device: ${TRANSMISSION_CONFIG_VOLUME_DEVICE}
+      type: ${CONFIG_VOL_TYPE}
+      o: ${CONFIG_VOL_OPTIONS}
+      device: ${CONFIG_VOL_DEVICE}
 
   watch-vol:
-    name: ${TRANSMISSION_WATCH_VOL_NAME:-transmission-watch-vol}
+    name: ${WATCH_VOL_NAME:-transmission-watch-vol}
