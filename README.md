@@ -16,6 +16,6 @@ Now, edit `/config/settings.json` file:
 $ vi /config/settings.json
 ```
 
-Then, set `rpc-host-whitelist` property, with your hostname value: **transmission.${PUBLIC_HOSTNAME}** (replace variable yourself).
+Then, set `rpc-host-whitelist` property, with your hostname value: **transmission.${TRAEFIK_DOMAIN}** (replace variable yourself).
 
-Finally, you can restart transmission service and connect at `https://transmission.${PUBLIC_HOSTNAME}`.
+Finally, you can restart transmission service and connect at `https://transmission.${TRAEFIK_DOMAIN}`.
