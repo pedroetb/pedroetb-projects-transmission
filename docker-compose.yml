@@ -32,6 +32,9 @@ services:
       timeout: ${HEALTHCHECK_TIMEOUT:-15s}
       retries: ${HEALTHCHECK_RETRIES:-10}
       start_period: ${HEALTHCHECK_START_PERIOD:-1m}
+    sysctls:
+      net.core.rmem_max: 4194304
+      net.core.wmem_max: 1048576
     deploy:
       mode: replicated
       replicas: ${REPLICAS:-1}
