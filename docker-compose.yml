@@ -27,7 +27,7 @@ services:
       - config-vol:/config
       - data-vol:/downloads
     healthcheck:
-      test: wget --spider -q http://${USER}:${PASS}@localhost:${UI_PORT}
+      test: wget --spider -q "http://${USER}:${PASS}@localhost:${UI_PORT}"
       interval: ${HEALTHCHECK_INTERVAL:-30s}
       timeout: ${HEALTHCHECK_TIMEOUT:-15s}
       retries: ${HEALTHCHECK_RETRIES:-10}
