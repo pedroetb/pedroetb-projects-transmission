@@ -1,25 +1,31 @@
-version: '3.7'
+version: '3.9'
 
 services:
   transmission:
     image: ${IMAGE_NAME:-linuxserver/transmission}:${IMAGE_TAG:-latest}
     environment:
+      PUID:
+      PGID:
       TZ:
+      TRANSMISSION_WEB_HOME:
+      USER:
+      PASS:
+      PEERPORT:
+      HOST_WHITELIST: ${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}
     networks:
       traefik-net:
     ports:
-      - target: ${DATA_PORT}
-        published: ${DATA_PORT}
+      - target: ${PEERPORT}
+        published: ${EXTERNAL_PEERPORT}
         protocol: tcp
         mode: ${PORT_MODE}
-      - target: ${DATA_PORT}
-        published: ${DATA_PORT}
+      - target: ${PEERPORT}
+        published: ${EXTERNAL_PEERPORT}
         protocol: udp
         mode: ${PORT_MODE}
     volumes:
       - config-vol:/config
       - data-vol:/downloads
-      - watch-vol:/watch
     healthcheck:
       test: wget --spider -q http://localhost:${UI_PORT}
       interval: ${HEALTHCHECK_INTERVAL:-30s}
@@ -36,10 +42,7 @@ services:
       labels:
         traefik.enable: 'true'
         traefik.http.routers.transmission.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
-        traefik.http.routers.transmission.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
-        traefik.http.routers.transmission.rule: Host(`${TRAEFIK_SUBDOMAIN:-transmission}.${TRAEFIK_DOMAIN}`)
-        traefik.http.middlewares.transmission-auth.basicauth.users: ${TRAEFIK_AUTH}
-        traefik.http.routers.transmission.middlewares: transmission-auth
+        traefik.http.routers.transmission.rule: Host(`${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}`)
         traefik.http.services.transmission.loadbalancer.server.port: ${UI_PORT}
       resources:
         limits:
@@ -56,21 +59,18 @@ networks:
     external: true
 
 volumes:
+  config-vol:
+    name: ${CONFIG_VOL_NAME:-transmission-config-vol}
+    driver: local
+    driver_opts:
+      type: ${VOL_TYPE}
+      o: addr=${VOL_ADDR},${VOL_OPTS}
+      device: ${CONFIG_VOL_DEVICE:-:/transmission-config-vol/}
+
   data-vol:
     name: ${DATA_VOL_NAME:-transmission-data-vol}
     driver: local
     driver_opts:
       type: ${DATA_VOL_TYPE}
-      o: ${DATA_VOL_OPTIONS}
-      device: ${DATA_VOL_DEVICE}
-
-  config-vol:
-    name: ${CONFIG_VOL_NAME:-transmission-config-vol}
-    driver: local
-    driver_opts:
-      type: ${CONFIG_VOL_TYPE}
-      o: ${CONFIG_VOL_OPTIONS}
-      device: ${CONFIG_VOL_DEVICE}
-
-  watch-vol:
-    name: ${WATCH_VOL_NAME:-transmission-watch-vol}
+      o: user=${DATA_VOL_USER},pass=${DATA_VOL_PASS},${DATA_VOL_OPTS}
+      device: //${DATA_VOL_ADDR}/${DATA_VOL_PATH:-incoming}
