@@ -1,8 +1,6 @@
-version: '3.9'
-
 services:
   transmission:
-    image: ${IMAGE_NAME:-linuxserver/transmission}:${IMAGE_TAG:-latest}
+    image: ${IMAGE_NAME:-lscr.io/linuxserver/transmission}:${IMAGE_TAG:-latest}
     environment:
       PUID:
       PGID:
@@ -40,7 +38,7 @@ services:
       update_config:
         delay: ${UPDATE_DELAY:-1m}
       labels:
-        traefik.enable: 'true'
+        traefik.enable: ${TRAEFIK_ENABLE:-true}
         traefik.http.routers.transmission.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
         traefik.http.routers.transmission.rule: Host(`${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}`)
         traefik.http.services.transmission.loadbalancer.server.port: ${UI_PORT}
@@ -50,7 +48,7 @@ services:
           memory: ${RESOURCES_LIMITS_MEMORY:-256M}
         reservations:
           cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
-          memory: ${RESOURCES_RESERVATIONS_MEMORY:-32M}
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-64M}
 
 networks:
   traefik-net:
@@ -61,7 +59,7 @@ networks:
 volumes:
   config-vol:
     name: ${CONFIG_VOL_NAME:-transmission-config-vol}
-    driver: local
+    driver: ${VOL_DRIVER}
     driver_opts:
       type: ${VOL_TYPE}
       o: addr=${VOL_ADDR},${VOL_OPTS}
@@ -69,7 +67,7 @@ volumes:
 
   data-vol:
     name: ${DATA_VOL_NAME:-transmission-data-vol}
-    driver: local
+    driver: ${VOL_DRIVER}
     driver_opts:
       type: ${DATA_VOL_TYPE}
       o: user=${DATA_VOL_USER},pass=${DATA_VOL_PASS},${DATA_VOL_OPTS}
