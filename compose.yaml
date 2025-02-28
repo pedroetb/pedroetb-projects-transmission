@@ -63,7 +63,7 @@ volumes:
     driver_opts:
       type: ${VOL_TYPE}
       o: addr=${VOL_ADDR},vers=${VOL_VERS},${VOL_OPTS}
-      device: ${CONFIG_VOL_DEVICE:-:/transmission-config-vol/}
+      device: :${VOL_DEVICE_PREFIX}${CONFIG_VOL_DEVICE:-/transmission-config-vol/}
 
   data-vol:
     name: ${DATA_VOL_NAME:-transmission-data-vol}
